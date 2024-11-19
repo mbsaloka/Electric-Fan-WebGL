@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <div>
+        Body Rotation -180 <input id="slider0" type="range" min="-180" max="180" step="10" value="0" />
+        180
+    </div><br />
+
+    <div>
+        Head Pan -180 <input id="slider1" type="range" min="-180" max="180" step="10" value="0" />
+        180
+    </div><br />
+
+    <div>
+        Head Tilt -30 <input id="slider2" type="range" min="-180" max="180" step="10" value="0" />
+        30
+    </div><br />
+
+    <div>
+        <input id="checkbox0" type="checkbox" value="0">
+        <label for="checkbox">Turn On/Off Fan</label>
+    </div>
+
+    <canvas id="gl-canvas" width="512"" height=" 512"> </canvas>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+#version 300 es
+
+in vec4 aPosition;
+
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
+void main()
+{
+    gl_Position = projectionMatrix * modelViewMatrix * aPosition;
+}
+</script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+out vec4 fColor;
+
+void main()
+{
+    fColor = vec4(1.0, 0.0, 0.0, 1.0);
+
+}
+</script>
+
+<script src="initShaders.js"></script>
+<script src="MVnew.js"></script>
+<script src="figure.js"></script>
+
+</body>
+
+</html>
