@@ -14,11 +14,6 @@
 
             <div class="control-group">
                 <div class="control-item">
-                    <label for="slider0">Body Rotation: <span id="bodyRotationValue">0</span>°</label>
-                    <input id="slider0" type="range" min="-180" max="180" step="10" value="0" />
-                </div>
-
-                <div class="control-item">
                     <label for="slider1">Head Tilt: <span id="headTiltValue">0</span>°</label>
                     <input id="slider1" type="range" min="-15" max="30" step="5" value="0" />
                 </div>
@@ -41,12 +36,28 @@
 
             <div class="control-group">
                 <div class="control-item">
-                    <label for="slider3">Body Translation X: <span id="bodyTranslationXValue">0</span>°</label>
-                    <input id="slider3" type="range" min="-10" max="10" step="0.5" value="0" />
+                    <label for="slider3">Body Rotation X: <span id="bodyRotationXValue">0</span>°</label>
+                    <input id="slider3" type="range" min="-90" max="90" step="10" value="0" />
+                </div>
+
+                <div class="control-item">
+                    <label for="slider4">Body Rotation Y: <span id="bodyRotationYValue">0</span>°</label>
+                    <input id="slider4" type="range" min="-180" max="180" step="10" value="0" />
+                </div>
+
+                <div class="control-item">
+                    <label for="slider5">Body Translation X: <span id="bodyTranslationXValue">0</span>°</label>
+                    <input id="slider5" type="range" min="-10" max="10" step="0.5" value="0" />
                 </div>
                 <div class="control-item">
-                    <label for="slider4">Body Translation Y: <span id="bodyTranslationYValue">0</span>°</label>
-                    <input id="slider4" type="range" min="-10" max="10" step="0.5" value="0" />
+                    <label for="slider6">Body Translation Y: <span id="bodyTranslationYValue">0</span>°</label>
+                    <input id="slider6" type="range" min="-10" max="10" step="0.5" value="0" />
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-item">
+                    <button id="button-reset">Reset</button>
+                </div>
             </div>
         </div>
     </div>

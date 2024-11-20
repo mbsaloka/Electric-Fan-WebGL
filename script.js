@@ -23,6 +23,7 @@ var vertices = [
 ];
 
 var bodyId = 0;
+var body2Id = 4;
 var headId = 1;
 var headPanId = 1;
 var headTiltId = 2;
@@ -41,7 +42,7 @@ var numNodes = 4;
 var numAngles = 4;
 var angle = 0;
 
-var theta = [0, 0, 0, 0];
+var theta = [0, 0, 0, 0, 0];
 var translation = [0, -4];
 
 var numVertices = 36;
@@ -106,15 +107,15 @@ var vertexColors = [
 ];
 
 // Lighting
-var lightPosition = vec4(1.0, 5.0, 3.0, 0.0); // Posisi lampu di atas
-var lightAmbient = vec4(0.9, 0.85, 0.7, 1.0); // Cahaya lingkungan putih kekuningan lembut
+var lightPosition = vec4(-5.0, 10.0, 3.0, 0.0); // Posisi lampu di atas
+var lightAmbient = vec4(0.95, 0.85, 0.7, 1.0); // Cahaya lingkungan putih kekuningan lembut
 var lightDiffuse = vec4(1.0, 0.9, 0.9, 1.0); // Cahaya terang putih kekuningan
 var lightSpecular = vec4(1.0, 0.9, 0.7, 1.0); // Refleksi terang putih kekuningan
 
 var materialAmbient = vec4(0.9, 0.9, 0.9, 1.0); // Warna dasar logam gelap
 var materialDiffuse = vec4(0.6, 0.6, 0.6, 1.0); // Warna logam perak terang
 var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0); // Refleksi logam terang
-var materialShininess = 100.0; // Tingkat kilap tinggi untuk logam
+var materialShininess = 3.0; // Tingkat kilap tinggi untuk logam
 
 var normalsArray = [];
 
@@ -147,11 +148,10 @@ function initNodes(Id) {
 
   switch (Id) {
     case bodyId:
-      // m = rotate(theta[bodyId], vec3(0, 1, 0));
-      // m = mult(m, translate(translation[0], translation[1], 0.0));
-
+    case body2Id:
       m = translate(translation[0], translation[1], 0.0);
-      m = mult(m, rotate(theta[bodyId], vec3(0, 1, 0)));
+      m = mult(m, rotate(theta[bodyId], vec3(1, 0, 0)));
+      m = mult(m, rotate(theta[body2Id], vec3(0, 1, 0)));
 
       figure[bodyId] = createNode(m, body, null, headId);
       break;
@@ -369,12 +369,6 @@ function init() {
   var diffuseProduct = mult(lightDiffuse, materialDiffuse);
   var specularProduct = mult(lightSpecular, materialSpecular);
 
-  document.getElementById("slider0").addEventListener("input", (event) => {
-    theta[bodyId] = event.target.value;
-    document.getElementById("bodyRotationValue").innerHTML = event.target.value;
-    initNodes(bodyId);
-  });
-
   document.getElementById("slider1").addEventListener("input", (event) => {
     theta[headTiltId] = event.target.value;
     document.getElementById("headTiltValue").innerHTML = event.target.value;
@@ -401,15 +395,55 @@ function init() {
   });
 
   document.getElementById("slider3").addEventListener("input", (event) => {
+    theta[bodyId] = event.target.value;
+    document.getElementById("bodyRotationXValue").innerHTML = event.target.value;
+    initNodes(bodyId);
+  });
+
+  document.getElementById("slider4").addEventListener("input", (event) => {
+    theta[body2Id] = event.target.value;
+    document.getElementById("bodyRotationYValue").innerHTML = event.target.value;
+    initNodes(body2Id);
+  });
+
+  document.getElementById("slider5").addEventListener("input", (event) => {
     translation[0] = event.target.value;
     document.getElementById("bodyTranslationXValue").innerHTML = event.target.value;
     initNodes(bodyId);
   });
 
-  document.getElementById("slider4").addEventListener("input", (event) => {
+  document.getElementById("slider6").addEventListener("input", (event) => {
     translation[1] = event.target.value - 4.0;
     document.getElementById("bodyTranslationYValue").innerHTML = event.target.value;
     initNodes(bodyId);
+  });
+
+  document.getElementById("button-reset").addEventListener("click", () => {
+    theta[headTiltId] = 0;
+    theta[headPanId] = 0;
+    theta[bodyId] = 0;
+    theta[body2Id] = 0;
+    translation[0] = 0;
+    translation[1] = -4;
+
+    document.getElementById("headTiltValue").innerHTML = 0;
+    document.getElementById("headPanValue").innerHTML = 0;
+    document.getElementById("bodyRotationXValue").innerHTML = 0;
+    document.getElementById("bodyRotationYValue").innerHTML = 0;
+    document.getElementById("bodyTranslationXValue").innerHTML = 0;
+    document.getElementById("bodyTranslationYValue").innerHTML = 0;
+
+    document.getElementById("slider1").value = 0;
+    document.getElementById("slider2").value = 0;
+    document.getElementById("slider3").value = 0;
+    document.getElementById("slider4").value = 0;
+    document.getElementById("slider5").value = 0;
+    document.getElementById("slider6").value = 0;
+
+    initNodes(headTiltId);
+    initNodes(headPanId);
+    initNodes(bodyId);
+    initNodes(body2Id);
   });
 
   for (i = 0; i < numNodes; i++) initNodes(i);
