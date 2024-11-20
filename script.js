@@ -66,10 +66,10 @@ var headPanSpeed = 1;
 var texSize = 64;
 
 var image1 = new Image();
-image1.src = "metal.jpg";
+image1.src = "texture/metal.jpg";
 
 var image2 = new Image();
-image2.src = "grey_plastic.jpg";
+image2.src = "texture/grey_plastic.jpg";
 
 image1.onload = function() {
   metalTexture = configureTexture(image1);
