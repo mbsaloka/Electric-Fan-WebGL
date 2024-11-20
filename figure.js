@@ -35,7 +35,7 @@ var plateWidth = 5.0;
 var headHeight = 1.5;
 var headWidth = 2.0;
 var headLength = 3.0;
-var bladeRadius = 4.0;
+var bladeRadius = 3.0;
 
 var numNodes = 4;
 var numAngles = 4;
@@ -67,24 +67,41 @@ var texSize = 64;
 
 // Create a checkerboard pattern using floats
 
-var image1 = new Array()
-    for (var i =0; i<texSize; i++)  image1[i] = new Array();
-    for (var i =0; i<texSize; i++)
-        for ( var j = 0; j < texSize; j++)
-           image1[i][j] = new Float32Array(4);
-    for (var i =0; i<texSize; i++) for (var j=0; j<texSize; j++) {
-        var c = (((i & 0x8) == 0) ^ ((j & 0x8) == 0));
-        image1[i][j] = [c, c, c, 1];
-    }
+// var image1 = new Array()
+//     for (var i =0; i<texSize; i++)  image1[i] = new Array();
+//     for (var i =0; i<texSize; i++)
+//         for ( var j = 0; j < texSize; j++)
+//            image1[i][j] = new Float32Array(4);
+//     for (var i =0; i<texSize; i++) for (var j=0; j<texSize; j++) {
+//         var c = (((i & 0x8) == 0) ^ ((j & 0x8) == 0));
+//         image1[i][j] = [c, c, c, 1];
+//     }
 
-// Convert floats to ubytes for texture
+// // Convert floats to ubytes for texture
 
-var image2 = new Uint8Array(4*texSize*texSize);
+// var image2 = new Uint8Array(4*texSize*texSize);
 
-    for (var i = 0; i < texSize; i++)
-        for (var j = 0; j < texSize; j++)
-           for(var k =0; k<4; k++)
-                image2[4*texSize*i+4*j+k] = 255*image1[i][j][k];
+//     for (var i = 0; i < texSize; i++)
+//         for (var j = 0; j < texSize; j++)
+//            for(var k =0; k<4; k++)
+//                 image2[4*texSize*i+4*j+k] = 255*image1[i][j][k];
+
+var image1 = new Image();
+image1.src = "metal.jpg";
+
+var image2 = new Image();
+image2.src = "grey_plastic.jpg";
+
+image1.onload = function() {
+  metalTexture = configureTexture(image1);
+};
+
+image2.onload = function() {
+  plasticTexture = configureTexture(image2);
+};
+
+var metalTexture = null;
+var plasticTexture = null;
 
 var colorsArray = [];
 var texCoordsArray = [];
@@ -97,13 +114,14 @@ var texCoord = [
 ];
 
 var vertexColors = [
+  vec4(1.0, 1.0, 1.0, 1.0),  // white
+  vec4(0.5, 0.5, 0.5, 1.0),  // grey
   vec4(0.0, 0.0, 0.0, 1.0),  // black
   vec4(1.0, 0.0, 0.0, 1.0),  // red
   vec4(1.0, 1.0, 0.0, 1.0),  // yellow
   vec4(0.0, 1.0, 0.0, 1.0),  // green
   vec4(0.0, 0.0, 1.0, 1.0),  // blue
   vec4(1.0, 0.0, 1.0, 1.0),  // magenta
-  vec4(0.0, 1.0, 1.0, 1.0),  // white
   vec4(0.0, 1.0, 1.0, 1.0)   // cyan
 ];
 
@@ -169,6 +187,9 @@ function traverse(Id) {
 }
 
 function body() {
+  gl.bindTexture(gl.TEXTURE_2D, plasticTexture);
+  gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
+
   // draw upper body
   instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * bodyHeight, 0.0));
   instanceMatrix = mult(instanceMatrix, scale(bodyWidth, bodyHeight, bodyWidth));
@@ -183,6 +204,9 @@ function body() {
 }
 
 function head() {
+  gl.bindTexture(gl.TEXTURE_2D, plasticTexture);
+  gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
+
   instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.0, 0.2));
   instanceMatrix = mult(instanceMatrix, scale(headWidth, headHeight, headLength));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
@@ -190,8 +214,24 @@ function head() {
 }
 
 function blade() {
-  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.0, -1.0));
-  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, bladeRadius, 0.05));
+  gl.bindTexture(gl.TEXTURE_2D, metalTexture);
+  gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
+
+  instanceMatrix = mult(modelViewMatrix, rotate(30.0, vec3(0, 0, 1)));
+  instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
+  gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+
+  instanceMatrix = mult(modelViewMatrix, rotate(-90.0, vec3(0, 0, 1)));
+  instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
+  gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+
+  instanceMatrix = mult(modelViewMatrix, rotate(150.0, vec3(0, 0, 1)));
+  instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
   for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
 }
@@ -206,31 +246,33 @@ function configureTexture(image) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
       gl.NEAREST_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  return texture;
 }
 
 function quad(a, b, c, d) {
   pointsArray.push(vertices[a]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[0]);
 
   pointsArray.push(vertices[b]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[1]);
 
   pointsArray.push(vertices[c]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[2]);
 
   pointsArray.push(vertices[a]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[0]);
 
   pointsArray.push(vertices[c]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[2]);
 
   pointsArray.push(vertices[d]);
-  colorsArray.push(vertexColors[a]);
+  colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[3]);
 }
 
@@ -305,9 +347,6 @@ function init() {
   var texCoordLoc = gl.getAttribLocation(program, "aTexCoord");
   gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(texCoordLoc);
-
-  configureTexture(image2);
-  gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
 
   document.getElementById("slider0").addEventListener("input", (event) => {
     theta[bodyId] = event.target.value;
