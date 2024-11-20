@@ -4,23 +4,28 @@
 <body>
 
     <div>
-        Body Rotation -180 <input id="slider0" type="range" min="-180" max="180" step="10" value="0" />
-        180
+        Body Rotation 0 <input id="slider0" type="range" min="0" max="360" step="10" value="0" />
+        360
     </div><br />
 
     <div>
-        Head Pan -180 <input id="slider1" type="range" min="-180" max="180" step="10" value="0" />
-        180
-    </div><br />
-
-    <div>
-        Head Tilt -30 <input id="slider2" type="range" min="-180" max="180" step="10" value="0" />
+        Head Tilt -15 <input id="slider1" type="range" min="-15" max="30" step="10" value="0" />
         30
+    </div><br />
+
+    <div>
+        Head Pan -90 <input id="slider2" type="range" min="-90" max="90" step="10" value="0" />
+        90
     </div><br />
 
     <div>
         <input id="checkbox0" type="checkbox" value="0">
         <label for="checkbox">Turn On/Off Fan</label>
+    </div>
+
+    <div>
+        <input id="checkbox1" type="checkbox" value="0">
+        <label for="checkbox">Turn On/Off Panning</label>
     </div>
 
     <canvas id="gl-canvas" width="512"" height=" 512"> </canvas>

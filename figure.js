@@ -28,10 +28,13 @@ var headPanId = 1;
 var headTiltId = 2;
 var bladeId = 3;
 
-var bodyHeight = 10.0;
-var bodyWidth = 5.0;
-var headHeight = 2.0;
-var headWidth = 1.0;
+var bodyHeight = 6.0;
+var bodyWidth = 1.0;
+var plateHeight = 0.5;
+var plateWidth = 5.0;
+var headHeight = 1.5;
+var headWidth = 2.0;
+var headLength = 3.0;
 var bladeRadius = 4.0;
 
 var numNodes = 4;
@@ -55,6 +58,9 @@ var modelViewLoc;
 var pointsArray = [];
 
 var isFanOn = false;
+var isPanningOn = false;
+var fanSpeed = 5;
+var headPanSpeed = 2;
 
 init();
 
@@ -93,21 +99,16 @@ function initNodes(Id) {
     case headPanId:
     case headTiltId:
       m = translate(0.0, bodyHeight + 0.5 * headHeight, 0.0);
-      m = mult(m, rotate(theta[headPanId], vec3(1, 0, 0)));
-      m = mult(m, rotate(theta[headTiltId], vec3(0, 1, 0)));
+      m = mult(m, rotate(theta[headPanId], vec3(0, 1, 0)));
+      m = mult(m, rotate(theta[headTiltId], vec3(1, 0, 0)));
       m = mult(m, translate(0.0, -0.5 * headHeight, 0.0));
-      figure[headId] = createNode(m, head, bladeId, null);
+      figure[headId] = createNode(m, head, null, bladeId);
       break;
 
     case bladeId:
-      m = translate(0.0, 0.9 * bodyHeight, bodyWidth);
-      m = mult(m, rotate(theta[bladeId], vec3(1, 0, 0)));
-      figure[bladeId] = createNode(
-        m,
-        leftUpperArm,
-        rightUpperArmId,
-        leftLowerArmId
-      );
+      m = translate(0.0, 0.0, headLength - 0.2);
+      m = mult(m, rotate(theta[bladeId], vec3(0, 0, 1)));
+      figure[bladeId] = createNode(m, blade, null, null);
       break;
   }
 }
@@ -123,33 +124,31 @@ function traverse(Id) {
 }
 
 function body() {
+  // draw upper body
   instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * bodyHeight, 0.0));
-  instanceMatrix = mult(
-    instanceMatrix,
-    scale(bodyWidth, bodyHeight, bodyWidth)
-  );
+  instanceMatrix = mult(instanceMatrix, scale(bodyWidth, bodyHeight, bodyWidth));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
-  for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.LINE_STRIP, 4 * i, 4);
+
+  // draw bottom plate
+  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.0, 0.0));
+  instanceMatrix = mult(instanceMatrix, scale(plateWidth, plateHeight, plateWidth));
+  gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.LINE_STRIP, 4 * i, 4);
 }
 
 function head() {
-  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * headHeight, 0.0));
-  instanceMatrix = mult(
-    instanceMatrix,
-    scale(headWidth, headHeight, headWidth)
-  );
+  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.0, 0.2));
+  instanceMatrix = mult(instanceMatrix, scale(headWidth, headHeight, headLength));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
-  for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.LINE_STRIP, 4 * i, 4);
 }
 
 function blade() {
-  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * headHeight, 0.0));
-  instanceMatrix = mult(
-    instanceMatrix,
-    scale(headWidth, headHeight, headWidth)
-  );
+  instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.0, -1.0));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, bladeRadius, 0.05));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
-  for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+  for (var i = 0; i < 6; i++) gl.drawArrays(gl.LINE_STRIP, 4 * i, 5);
 }
 
 function quad(a, b, c, d) {
@@ -215,28 +214,33 @@ function init() {
   gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(positionLoc);
 
-  document.getElementById("slider0").onchange = function (event) {
+  document.getElementById("slider0").addEventListener("input", (event) => {
     theta[bodyId] = event.target.value;
     initNodes(bodyId);
-  };
-  document.getElementById("slider1").onchange = function (event) {
-    theta[headPanId] = event.target.value;
-    initNodes(headPanId);
-  };
+  });
 
-  document.getElementById("slider2").onchange = function (event) {
+  document.getElementById("slider1").addEventListener("input", (event) => {
     theta[headTiltId] = event.target.value;
     initNodes(headTiltId);
-  };
+  });
 
-  document.getElementById("checkbox0").onchange = function (event) {
-    if (event.target.checked) {
-      isFanOn = true;
-    } else {
-      isFanOn = false;
-    }
+  document.getElementById("slider2").addEventListener("input", (event) => {
+    theta[headPanId] = event.target.value;
+    initNodes(headPanId);
+  });
+
+  document.getElementById("checkbox0").addEventListener("change", (event) => {
+    isFanOn = event.target.checked;
     initNodes(bladeId);
-  };
+  });
+
+  document.getElementById("checkbox1").addEventListener("change", (event) => {
+    theta[headPanId] = 0;
+    isPanningOn = event.target.checked;
+    initNodes(headPanId);
+
+    document.getElementById("slider2").disabled = isPanningOn;
+  });
 
   for (i = 0; i < numNodes; i++) initNodes(i);
 
@@ -245,6 +249,21 @@ function init() {
 
 function render() {
   gl.clear(gl.COLOR_BUFFER_BIT);
+
+  if (isFanOn) {
+    theta[bladeId] += fanSpeed;
+    if (theta[bladeId] > 360) theta[bladeId] -= 360;
+    initNodes(bladeId);
+  }
+
+  if (isPanningOn) {
+    theta[headPanId] += headPanSpeed;
+    if (theta[headPanId] > 70 || theta[headPanId] < -70) {
+      headPanSpeed = -headPanSpeed;
+    }
+    initNodes(headPanId);
+  }
+
   traverse(bodyId);
   requestAnimationFrame(render);
 }
