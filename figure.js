@@ -65,27 +65,6 @@ var headPanSpeed = 1;
 // texture
 var texSize = 64;
 
-// Create a checkerboard pattern using floats
-
-// var image1 = new Array()
-//     for (var i =0; i<texSize; i++)  image1[i] = new Array();
-//     for (var i =0; i<texSize; i++)
-//         for ( var j = 0; j < texSize; j++)
-//            image1[i][j] = new Float32Array(4);
-//     for (var i =0; i<texSize; i++) for (var j=0; j<texSize; j++) {
-//         var c = (((i & 0x8) == 0) ^ ((j & 0x8) == 0));
-//         image1[i][j] = [c, c, c, 1];
-//     }
-
-// // Convert floats to ubytes for texture
-
-// var image2 = new Uint8Array(4*texSize*texSize);
-
-//     for (var i = 0; i < texSize; i++)
-//         for (var j = 0; j < texSize; j++)
-//            for(var k =0; k<4; k++)
-//                 image2[4*texSize*i+4*j+k] = 255*image1[i][j][k];
-
 var image1 = new Image();
 image1.src = "metal.jpg";
 
@@ -115,15 +94,28 @@ var texCoord = [
 
 var vertexColors = [
   vec4(1.0, 1.0, 1.0, 1.0),  // white
+  vec4(1.0, 1.0, 0.0, 1.0),  // yellow
   vec4(0.5, 0.5, 0.5, 1.0),  // grey
   vec4(0.0, 0.0, 0.0, 1.0),  // black
   vec4(1.0, 0.0, 0.0, 1.0),  // red
-  vec4(1.0, 1.0, 0.0, 1.0),  // yellow
   vec4(0.0, 1.0, 0.0, 1.0),  // green
   vec4(0.0, 0.0, 1.0, 1.0),  // blue
   vec4(1.0, 0.0, 1.0, 1.0),  // magenta
   vec4(0.0, 1.0, 1.0, 1.0)   // cyan
 ];
+
+// Lighting
+var lightPosition = vec4(1.0, 5.0, 3.0, 0.0); // Posisi lampu di atas
+var lightAmbient = vec4(0.9, 0.85, 0.7, 1.0); // Cahaya lingkungan putih kekuningan lembut
+var lightDiffuse = vec4(1.0, 0.9, 0.9, 1.0); // Cahaya terang putih kekuningan
+var lightSpecular = vec4(1.0, 0.9, 0.7, 1.0); // Refleksi terang putih kekuningan
+
+var materialAmbient = vec4(0.9, 0.9, 0.9, 1.0); // Warna dasar logam gelap
+var materialDiffuse = vec4(0.6, 0.6, 0.6, 1.0); // Warna logam perak terang
+var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0); // Refleksi logam terang
+var materialShininess = 100.0; // Tingkat kilap tinggi untuk logam
+
+var normalsArray = [];
 
 init();
 
@@ -219,19 +211,19 @@ function blade() {
 
   instanceMatrix = mult(modelViewMatrix, rotate(30.0, vec3(0, 0, 1)));
   instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
-  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.3, 0.05));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
   for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
 
   instanceMatrix = mult(modelViewMatrix, rotate(-90.0, vec3(0, 0, 1)));
   instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
-  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.3, 0.05));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
   for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
 
   instanceMatrix = mult(modelViewMatrix, rotate(150.0, vec3(0, 0, 1)));
   instanceMatrix = mult(instanceMatrix, translate(bladeRadius/2, 0.0, -1.0));
-  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.2, 0.05));
+  instanceMatrix = mult(instanceMatrix, scale(bladeRadius, 1.3, 0.05));
   gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
   for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLES, 0, numVertices);
 }
@@ -251,29 +243,40 @@ function configureTexture(image) {
 }
 
 function quad(a, b, c, d) {
+  var t1 = subtract(vertices[b], vertices[a]);
+  var t2 = subtract(vertices[c], vertices[b]);
+  var normal = cross(t1, t2);
+  normal = vec3(normal);
+
   pointsArray.push(vertices[a]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[0]);
+  normalsArray.push(normal);
 
   pointsArray.push(vertices[b]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[1]);
+  normalsArray.push(normal);
 
   pointsArray.push(vertices[c]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[2]);
+  normalsArray.push(normal);
 
   pointsArray.push(vertices[a]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[0]);
+  normalsArray.push(normal);
 
   pointsArray.push(vertices[c]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[2]);
+  normalsArray.push(normal);
 
   pointsArray.push(vertices[d]);
   colorsArray.push(vertexColors[0]);
   texCoordsArray.push(texCoord[3]);
+  normalsArray.push(normal);
 }
 
 function cube() {
@@ -325,6 +328,14 @@ function init() {
 
   cube();
 
+  var nBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, nBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
+
+  var normalLoc = gl.getAttribLocation(program, "aNormal");
+  gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray( normalLoc);
+
   var cBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW);
@@ -347,6 +358,10 @@ function init() {
   var texCoordLoc = gl.getAttribLocation(program, "aTexCoord");
   gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(texCoordLoc);
+
+  var ambientProduct = mult(lightAmbient, materialAmbient);
+  var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+  var specularProduct = mult(lightSpecular, materialSpecular);
 
   document.getElementById("slider0").addEventListener("input", (event) => {
     theta[bodyId] = event.target.value;
@@ -377,6 +392,12 @@ function init() {
   });
 
   for (i = 0; i < numNodes; i++) initNodes(i);
+
+  gl.uniform4fv(gl.getUniformLocation(program, "uAmbientProduct"), ambientProduct);
+  gl.uniform4fv(gl.getUniformLocation(program, "uDiffuseProduct"), diffuseProduct );
+  gl.uniform4fv(gl.getUniformLocation(program, "uSpecularProduct"), specularProduct );
+  gl.uniform4fv(gl.getUniformLocation(program, "uLightPosition"), lightPosition );
+  gl.uniform1f(gl.getUniformLocation(program, "uShininess"), materialShininess);
 
   render();
 }
