@@ -1,117 +1,134 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Electric Fan WebGL</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+    <h1>Electric Fan WebGL</h1>
+    <div class="main-container">
+        <canvas id="gl-canvas" width="640" height="640"> </canvas>
+        <div class="control-section">
 
-    <div>
-        Body Rotation 0 <input id="slider0" type="range" min="0" max="360" step="10" value="0" />
-        360
-    </div><br />
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="slider0">Body Rotation: <span id="bodyRotationValue">0</span>°</label>
+                    <input id="slider0" type="range" min="-180" max="180" step="10" value="0" />
+                </div>
 
-    <div>
-        Head Tilt -15 <input id="slider1" type="range" min="-15" max="30" step="10" value="0" />
-        30
-    </div><br />
+                <div class="control-item">
+                    <label for="slider1">Head Tilt: <span id="headTiltValue">0</span>°</label>
+                    <input id="slider1" type="range" min="-15" max="30" step="5" value="0" />
+                </div>
 
-    <div>
-        Head Pan -90 <input id="slider2" type="range" min="-90" max="90" step="10" value="0" />
-        90
-    </div><br />
+                <div class="control-item">
+                    <label for="slider2">Head Pan: <span id="headPanValue">0</span>°</label>
+                    <input id="slider2" type="range" min="-90" max="90" step="10" value="0" />
+                </div>
 
-    <div>
-        <input id="checkbox0" type="checkbox" value="0">
-        <label for="checkbox">Turn On/Off Fan</label>
+                <div class="control-item">
+                    <input id="checkbox0" type="checkbox" value="0" />
+                    <label for="checkbox0">Turn On/Off Fan</label>
+                </div>
+
+                <div class="control-item">
+                    <input id="checkbox1" type="checkbox" value="0" />
+                    <label for="checkbox1">Turn On/Off Panning</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="slider3">Body Translation X: <span id="bodyTranslationXValue">0</span>°</label>
+                    <input id="slider3" type="range" min="-10" max="10" step="0.5" value="0" />
+                </div>
+                <div class="control-item">
+                    <label for="slider4">Body Translation Y: <span id="bodyTranslationYValue">0</span>°</label>
+                    <input id="slider4" type="range" min="-10" max="10" step="0.5" value="0" />
+            </div>
+        </div>
     </div>
 
-    <div>
-        <input id="checkbox1" type="checkbox" value="0">
-        <label for="checkbox">Turn On/Off Panning</label>
-    </div>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
 
-    <canvas id="gl-canvas" width="512"" height=" 512"> </canvas>
+      in vec4 aPosition;
+      in vec4 aColor;
+      in vec2 aTexCoord;
+      in vec3 aNormal;
 
-<script id="vertex-shader" type="x-shader/x-vertex">
-#version 300 es
+      out vec4 vColor;
+      out vec2 vTexCoord;
 
-in vec4 aPosition;
-in vec4 aColor;
-in vec2 aTexCoord;
-in vec3 aNormal;
+      uniform mat4 modelViewMatrix;
+      uniform mat4 projectionMatrix;
+      uniform vec4 uAmbientProduct, uDiffuseProduct, uSpecularProduct;
+      uniform vec4 uLightPosition;
+      uniform float uShininess;
 
-out vec4 vColor;
-out vec2 vTexCoord;
+      void main()
+      {
+          vec3 pos = -(modelViewMatrix * aPosition).xyz;
 
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-uniform vec4 uAmbientProduct, uDiffuseProduct, uSpecularProduct;
-uniform vec4 uLightPosition;
-uniform float uShininess;
+          //fixed light postion
 
-void main()
-{
-    vec3 pos = -(modelViewMatrix * aPosition).xyz;
-
-    //fixed light postion
-
-    vec3 light = uLightPosition.xyz;
-    vec3 L = normalize(light - pos);
+          vec3 light = uLightPosition.xyz;
+          vec3 L = normalize(light - pos);
 
 
-    vec3 E = normalize(-pos);
-    vec3 H = normalize(L + E);
+          vec3 E = normalize(-pos);
+          vec3 H = normalize(L + E);
 
-    vec4 NN = vec4(aNormal,0);
+          vec4 NN = vec4(aNormal,0);
 
-    // Transform vertex normal into eye coordinates
+          // Transform vertex normal into eye coordinates
 
-    vec3 N = normalize((modelViewMatrix*NN).xyz);
+          vec3 N = normalize((modelViewMatrix*NN).xyz);
 
-    // Compute terms in the illumination equation
-    vec4 ambient = uAmbientProduct;
+          // Compute terms in the illumination equation
+          vec4 ambient = uAmbientProduct;
 
-    float Kd = max(dot(L, N), 0.0);
-    vec4  diffuse = Kd*uDiffuseProduct;
+          float Kd = max(dot(L, N), 0.0);
+          vec4  diffuse = Kd*uDiffuseProduct;
 
-    float Ks = pow( max(dot(N, H), 0.0), uShininess );
-    vec4  specular = Ks * uSpecularProduct;
+          float Ks = pow( max(dot(N, H), 0.0), uShininess );
+          vec4  specular = Ks * uSpecularProduct;
 
-    if( dot(L, N) < 0.0 ) {
-	  specular = vec4(0.0, 0.0, 0.0, 1.0);
-    }
+          if( dot(L, N) < 0.0 ) {
+      	  specular = vec4(0.0, 0.0, 0.0, 1.0);
+          }
 
-    // vColor = aColor;
-    vTexCoord = aTexCoord;
-    gl_Position = projectionMatrix * modelViewMatrix * aPosition;
-    vColor = (ambient + diffuse + specular) * aColor;
-    vColor.a = 1.0;
-}
-</script>
+          // vColor = aColor;
+          vTexCoord = aTexCoord;
+          gl_Position = projectionMatrix * modelViewMatrix * aPosition;
+          vColor = (ambient + diffuse + specular) * aColor;
+          vColor.a = 1.0;
+      }
+    </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
-#version 300 es
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
 
-precision mediump float;
+      precision mediump float;
 
-in vec4 vColor;
-in vec2 vTexCoord;
+      in vec4 vColor;
+      in vec2 vTexCoord;
 
-out vec4 fColor;
+      out vec4 fColor;
 
-uniform sampler2D uTextureMap;
+      uniform sampler2D uTextureMap;
 
-void main()
-{
-    fColor = vColor*texture(uTextureMap, vTexCoord);
-}
-</script>
+      void main()
+      {
+          fColor = vColor*texture(uTextureMap, vTexCoord);
+      }
+    </script>
 
-<script src="initShaders.js"></script>
-<script src="MVnew.js"></script>
-<script src="script.js"></script>
-
+    <script src="initShaders.js"></script>
+    <script src="MVnew.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

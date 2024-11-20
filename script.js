@@ -42,6 +42,7 @@ var numAngles = 4;
 var angle = 0;
 
 var theta = [0, 0, 0, 0];
+var translation = [0, -4];
 
 var numVertices = 36;
 
@@ -60,7 +61,7 @@ var pointsArray = [];
 var isFanOn = false;
 var isPanningOn = false;
 var fanSpeed = 5;
-var headPanSpeed = 1;
+var headPanSpeed = 0.8;
 
 // texture
 var texSize = 64;
@@ -146,7 +147,12 @@ function initNodes(Id) {
 
   switch (Id) {
     case bodyId:
-      m = rotate(theta[bodyId], vec3(0, 1, 0));
+      // m = rotate(theta[bodyId], vec3(0, 1, 0));
+      // m = mult(m, translate(translation[0], translation[1], 0.0));
+
+      m = translate(translation[0], translation[1], 0.0);
+      m = mult(m, rotate(theta[bodyId], vec3(0, 1, 0)));
+
       figure[bodyId] = createNode(m, body, null, headId);
       break;
 
@@ -365,16 +371,19 @@ function init() {
 
   document.getElementById("slider0").addEventListener("input", (event) => {
     theta[bodyId] = event.target.value;
+    document.getElementById("bodyRotationValue").innerHTML = event.target.value;
     initNodes(bodyId);
   });
 
   document.getElementById("slider1").addEventListener("input", (event) => {
     theta[headTiltId] = event.target.value;
+    document.getElementById("headTiltValue").innerHTML = event.target.value;
     initNodes(headTiltId);
   });
 
   document.getElementById("slider2").addEventListener("input", (event) => {
     theta[headPanId] = event.target.value;
+    document.getElementById("headPanValue").innerHTML = event.target.value
     initNodes(headPanId);
   });
 
@@ -389,6 +398,18 @@ function init() {
     initNodes(headPanId);
 
     document.getElementById("slider2").disabled = isPanningOn;
+  });
+
+  document.getElementById("slider3").addEventListener("input", (event) => {
+    translation[0] = event.target.value;
+    document.getElementById("bodyTranslationXValue").innerHTML = event.target.value;
+    initNodes(bodyId);
+  });
+
+  document.getElementById("slider4").addEventListener("input", (event) => {
+    translation[1] = event.target.value - 4.0;
+    document.getElementById("bodyTranslationYValue").innerHTML = event.target.value;
+    initNodes(bodyId);
   });
 
   for (i = 0; i < numNodes; i++) initNodes(i);
